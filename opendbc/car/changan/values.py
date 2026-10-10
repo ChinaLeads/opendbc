@@ -204,7 +204,11 @@ GEAR_MAP = {
 
 DBC = CAR.create_dbc_map()
 
-# Changan has no FW fingerprinting yet; manual selection remains available as a fallback.
+# China branch (single vehicle: Changan Z6 iDD) uses opendbc's official
+# fixed-fingerprint mechanism: launch_env.sh exports 'FINGERPRINT="CHANGAN_Z6_IDD"'
+# which maps to FingerprintSource.fixed. FW fingerprinting is intentionally
+# disabled until real FW strings are captured from an actual vehicle (see
+# fingerprints.py). This keeps the branch from misidentifying unrelated cars.
 FW_QUERY_CONFIG = FwQueryConfig(
   requests=[],
   fw_version_regex=b"",
