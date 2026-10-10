@@ -25,27 +25,24 @@ class CarInterface(CarInterfaceBase):
     ret.steerActuatorDelay = 0.12
     ret.steerLimitTimer = 1
     ret.steerControlType = structs.CarParams.SteerControlType.angle
+    ret.enableBsm = True
     # Z6 publishes front-radar/ACC object frames on the camera (bus 2) CAN
-    # stream.  Keep the radar path enabled; RadarInterface applies its own
-    # validity/continuity gates.
+    # stream.  The previous adaptation disabled the radar interface, which
+    # meant only the camera lead was available to controls.  Keep the radar
+    # path enabled; RadarInterface applies its own validity/continuity gates.
     ret.radarUnavailable = False
+    ret.radarTimeStep = 0.10
     ret.minSteerSpeed = 0
-    ret.minEnableSpeed = -1
     ret.pcmCruise = False
     ret.openpilotLongitudinalControl = True
     ret.autoResumeSng = True
+    ret.minEnableSpeed = -1
+    ret.vEgoStopping = 0.25
+    ret.vEgoStarting = 0.25
+    ret.stoppingDecelRate = 0.3
+    ret.startingState = True
+    ret.startAccel = 0.5
     ret.stopAccel = -0.5
     ret.longitudinalActuatorDelay = 0.3
-
-    # Fields that upstream moved into the deprecated group.  They still drive
-    # the starting/stopping state machine and the BSM display, so set them
-    # through the group accessor.
-    ret.deprecated.enableBsm = True
-    ret.deprecated.radarTimeStep = 0.10
-    ret.deprecated.vEgoStopping = 0.25
-    ret.deprecated.vEgoStarting = 0.25
-    ret.deprecated.stoppingDecelRate = 0.3
-    ret.deprecated.startingState = True
-    ret.deprecated.startAccel = 1.2
 
     return ret
