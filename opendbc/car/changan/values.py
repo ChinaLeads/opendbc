@@ -83,7 +83,9 @@ class CarControllerParams:
   # Z6 EPS torque authority on the 0x1BA steering command. The OEM spec allows
   # torque requests up to +/-5 Nm (calibratable); 4.0 is a first incremental
   # step above the proven 3.0 to test whether ground-reaction torque at speed
-  # was starving angle tracking. Must match Panda safety raw limits 1224/824.
+  # was starving angle tracking.
+  # DBC encoding: 0.02 Nm/LSB, -20.48 offset.  4.0 Nm -> raw 1224, -4.0 Nm -> raw 824.
+  # The safety model (changan.h) enforces the same raw bounds [824, 1224].
   STEER_TORQUE_LIMIT = 4.0
   STEER_THRESHOLD = 1.0
   STEER_OVERRIDE_TAKEOVER_THRESHOLD_IDD = 3.0

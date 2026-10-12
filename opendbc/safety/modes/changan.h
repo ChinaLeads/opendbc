@@ -42,7 +42,7 @@ static uint32_t changan_compute_checksum(const CANPacket_t *msg) {
 }
 
 static uint8_t changan_get_counter(const CANPacket_t *msg) {
-  // rolling counter (e.g. EPS_RollingCounter_24F @ 51|4 of changed.dbc) is
+  // rolling counter (e.g. EPS_RollingCounter_24F @ 51|4 of changan.dbc) is
   // the low nibble of byte 6 on all transmitted frames (big-endian layout)
   return (uint8_t)(msg->data[6] & 0x0FU);
 }
@@ -140,13 +140,13 @@ static bool changan_tx_hook(const CANPacket_t *msg) {
     }
 
     // Torque limit requests are unsigned 0.02 Nm/LSB with -20.48 offset;
-    // DBC range [-20.48, 20.44] Nm but EPS envelope here is +-4.0 Nm.
+    // DBC range [-20.48, 20.44] Nm.  4.0 Nm maps to raw 1224, -4.0 Nm maps to raw 824.
     // ACC_MotorTorqueMaxLimitRequest 7|11@0+ -> raw [824, 1224]
     // ACC_MotorTorqueMinLimitRequest 12|11@0+ -> raw [824, 1224]
     int torque_max_raw = (((msg->data[0] << 3) | ((msg->data[1] >> 5) & 0x7U)) & 0x7FFU);
     int torque_min_raw = ((((msg->data[1] & 0x1FU) << 6) | ((msg->data[2] >> 2) & 0x3FU)) & 0x7FFU);
     if ((torque_max_raw < 824) || (torque_max_raw > 1224) ||
-        (torque_min_raw < 824) || (torque_min_raw > 1224)) {  // +-4.0 Nm raw (0.02 Nm/LSB)
+        (torque_min_raw < 824) || (torque_min_raw > 1224)) {
       tx = false;
     }
   }
@@ -175,7 +175,9 @@ static bool changan_tx_hook(const CANPacket_t *msg) {
 // ------------------------------------------------------------------ init ---
 
 static safety_config changan_init(uint16_t param) {
-  (void)param;
+  // param bit 0: enable longitudinal control
+  bool longitudinal_allowed = (param & 1U) != 0U;
+
   static const CanMsg CHANGAN_TX_MSGS[] = {
     {0x1BA, 0, 32, .check_relay = true},   // GW_1BA  steering command
     {0x17E, 0,  8, .check_relay = true},   // GW_17E  EPS lateral status
@@ -185,18 +187,28 @@ static safety_config changan_init(uint16_t param) {
   };
 
   static RxCheck changan_rx_checks[] = {
-    // GW_180 steering angle, 0.1 deg (no checksum/counter fields in DBC)
-    {.msg = {{0x180, 0, 8, 50U, .ignore_checksum = true, .ignore_counter = true, .ignore_quality_flag = true}, { 0 }, { 0 }}},
-    // GW_17A vehicle speed (iDD) / GW_187 (ICE); no checksum/counter fields in DBC
-    {.msg = {{0x17A, 0, 8, 50U, .ignore_checksum = true, .ignore_counter = true, .ignore_quality_flag = true},
-             {0x187, 0, 8, 50U, .ignore_checksum = true, .ignore_counter = true, .ignore_quality_flag = true}, { 0 }}},
+    // GW_180 steering angle, 0.1 deg; CRC and counter verified via DBC signals
+    {.msg = {{0x180, 0, 8, 50U, .ignore_checksum = false, .ignore_counter = false, .max_counter = 15U, .ignore_quality_flag = true}, { 0 }, { 0 }}},
+    // GW_17A vehicle speed (iDD) / GW_187 (ICE); CRC and counter verified via DBC signals
+    {.msg = {{0x17A, 0, 8, 50U, .ignore_checksum = false, .ignore_counter = false, .max_counter = 15U, .ignore_quality_flag = true},
+             {0x187, 0, 8, 50U, .ignore_checksum = false, .ignore_counter = false, .max_counter = 15U, .ignore_quality_flag = true}, { 0 }}},
     // GW_24F driver steering torque; has EPS_CRCCheck_24F 63|8 and EPS_RollingCounter_24F 51|4
     {.msg = {{0x24F, 0, 8, 50U, .ignore_checksum = false, .ignore_counter = false, .max_counter = 15U, .ignore_quality_flag = true}, { 0 }, { 0 }}},
   };
 
   safety_config ret;
   SET_RX_CHECKS(changan_rx_checks, ret);
-  SET_TX_MSGS(CHANGAN_TX_MSGS, ret);
+
+  if (longitudinal_allowed) {
+    SET_TX_MSGS(CHANGAN_TX_MSGS, ret);
+  } else {
+    // steering-only: drop longitudinal messages
+    static const CanMsg CHANGAN_TX_MSGS_STEER_ONLY[] = {
+      {0x1BA, 0, 32, .check_relay = true},
+      {0x17E, 0,  8, .check_relay = true},
+    };
+    SET_TX_MSGS(CHANGAN_TX_MSGS_STEER_ONLY, ret);
+  }
   return ret;
 }
 

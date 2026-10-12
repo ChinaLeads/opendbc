@@ -30,17 +30,11 @@ class CarInterface(CarInterfaceBase):
     # meant only the camera lead was available to controls.  Keep the radar
     # path enabled; RadarInterface applies its own validity/continuity gates.
     ret.radarUnavailable = False
-    ret.radarTimeStep = 0.10
     ret.minSteerSpeed = 0
     ret.pcmCruise = False
     ret.openpilotLongitudinalControl = True
     ret.autoResumeSng = True
     ret.minEnableSpeed = -1
-    ret.vEgoStopping = 0.25
-    ret.vEgoStarting = 0.25
-    ret.stoppingDecelRate = 0.3
-    ret.startingState = True
-    ret.startAccel = 0.5
     ret.stopAccel = -0.5
     ret.longitudinalActuatorDelay = 0.3
 
