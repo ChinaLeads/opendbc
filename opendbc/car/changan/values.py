@@ -34,11 +34,6 @@ class CAR(Platforms):
     [ChanganCarDocs("Changan Z6 Idd")],
     CarSpecs(mass=1760., wheelbase=2.795, steerRatio=14.5, centerToFrontRatio=0.44),
   )
-  CHANGAN_Z6 = ChanganPlatformConfig(
-    [ChanganCarDocs("Changan Z6")],
-    CarSpecs(mass=1550., wheelbase=2.795, steerRatio=14.5, centerToFrontRatio=0.44),
-    flags=ChanganFlags.GAS,
-  )
 
 
 class CarControllerParams:
@@ -107,7 +102,7 @@ class CarControllerParams:
   STEER_REENGAGE_RATE_THRESHOLD = 25.0
   IACC_CURVATURE_CONTROL = False
 
-  # === IDD LAUNCH BOOST (added by fix_z6idd_launch) ===
+  # iDD launch boost parameters for low-speed torque fill.
   IDD_LAUNCH_BOOST = 0.35
   IDD_LAUNCH_BOOST_MAX_KPH = 15.0
   IDD_LAUNCH_BOOST_END_KPH = 30.0
@@ -206,12 +201,13 @@ GEAR_MAP = {
 
 DBC = CAR.create_dbc_map()
 
-# CHANGAN_Z6 (petrol) firmware strings were restored from the working server
-# install package (see fingerprints.py). CHANGAN_Z6_IDD still has no captured
-# FW, so this branch keeps the fixed-fingerprint mechanism: launch_env.sh
-# exports 'FINGERPRINT="CHANGAN_Z6_IDD"' (FingerprintSource.fixed in
-# opendbc/car/car_helpers.py) and FW queries stay empty to avoid
-# misidentifying the iDD as another vehicle.
+# This branch targets the Changan Z6 iDD platform exclusively.
+# Firmware version queries are intentionally disabled because no validated
+# factory strings have been collected yet.  Vehicle identification relies on
+# the fixed-fingerprint mechanism (FINGERPRINT="CHANGAN_Z6_IDD" in
+# launch_env.sh).  Once real firmware data is gathered via openpilot's
+# Fingerprinting 2.0 flow, it should be added here to enable automatic
+# vehicle recognition.
 FW_QUERY_CONFIG = FwQueryConfig(
   requests=[],
   fw_version_regex=b"",
