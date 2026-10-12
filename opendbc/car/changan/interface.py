@@ -25,7 +25,6 @@ class CarInterface(CarInterfaceBase):
     ret.steerActuatorDelay = 0.12
     ret.steerLimitTimer = 1
     ret.steerControlType = structs.CarParams.SteerControlType.angle
-    ret.enableBsm = True
     # Z6 publishes front-radar/ACC object frames on the camera (bus 2) CAN
     # stream.  The previous adaptation disabled the radar interface, which
     # meant only the camera lead was available to controls.  Keep the radar

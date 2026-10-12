@@ -42,8 +42,9 @@ static uint32_t changan_compute_checksum(const CANPacket_t *msg) {
 }
 
 static uint8_t changan_get_counter(const CANPacket_t *msg) {
-  // rolling counter is the high nibble of byte 6 on all transmitted frames
-  return (uint8_t)(msg->data[6] >> 4);
+  // rolling counter (e.g. EPS_RollingCounter_24F @ 51|4 of changed.dbc) is
+  // the low nibble of byte 6 on all transmitted frames (big-endian layout)
+  return (uint8_t)(msg->data[6] & 0x0FU);
 }
 
 // ------------------------------------------------------------- rx (read) ---
@@ -51,8 +52,9 @@ static uint8_t changan_get_counter(const CANPacket_t *msg) {
 static void changan_rx_hook(const CANPacket_t *msg) {
   if (msg->bus == 0U) {
     // Steering angle (SAS) - GW_180, 0.1 deg/LSB, signed
+    // DBC: SAS_SteeringAngle 7|16@0-  (big-endian: byte0 = MSB)
     if (msg->addr == 0x180U) {
-      int angle_meas_new = to_signed((msg->data[1] << 8) | msg->data[0], 16);
+      int angle_meas_new = to_signed((msg->data[0] << 8) | msg->data[1], 16);
       update_sample(&angle_meas, angle_meas_new);
     }
 
@@ -64,16 +66,19 @@ static void changan_rx_hook(const CANPacket_t *msg) {
   }
 
   // Vehicle speed - GW_17A (iDD) / GW_187 (ICE), 0.05625 kph/LSB
+  // DBC: ESP_VehicleSpeed 36|13@0+  (big-endian: byte4 low5 + byte5)
   if (msg->addr == 0x17AU || msg->addr == 0x187U) {
-    int speed = ((msg->data[5] << 8) | msg->data[4]) >> 3;
-    speed &= 0x1FFFU;
+    int speed = ((msg->data[4] & 0x1FU) << 8) | msg->data[5];
     vehicle_moving = speed > 0;
     UPDATE_VEHICLE_SPEED(speed * 0.05625 * KPH_TO_MS);
   }
 
-  // Brake pedal - GW_1A6 (iDD) / GW_196 (ICE), EMS_BrakePedalStatus @35|2
-  if (msg->addr == 0x1A6U || msg->addr == 0x196U) {
-    brake_pressed = ((msg->data[4] >> 3) & 0x3U) != 0U;
+  // Brake pedal - GW_1A6 (iDD) / GW_196 (ICE), EMS_BrakePedalStatus
+  // DBC: 1A6 -> 35|2@0+ (byte4 bits 3..2);  196 -> 55|2@0+ (byte6 bits 7..6)
+  if (msg->addr == 0x1A6U) {
+    brake_pressed = ((msg->data[4] >> 2) & 0x3U) != 0U;
+  } else if (msg->addr == 0x196U) {
+    brake_pressed = ((msg->data[6] >> 6) & 0x3U) != 0U;
   }
 
   // Accelerator pedal - GW_1C6 (iDD) / GW_1A6 (ICE), 0.392 %/LSB
@@ -85,8 +90,9 @@ static void changan_rx_hook(const CANPacket_t *msg) {
 
   if (msg->bus == 2U) {
     // Stock ACC state - GW_244, ACC_ACCMode; 0=off, 2=standby, 3=active, 5=override
+    // DBC: ACC_ACCMode 54|3@0+  (big-endian: byte6 bits 6..4)
     if (msg->addr == 0x244U) {
-      uint8_t acc_state = (uint8_t)((msg->data[1] >> 1) & 0x7U);
+      uint8_t acc_state = (uint8_t)((msg->data[6] >> 4) & 0x7U);
       bool acc_on = (acc_state == 3U) || (acc_state == 5U);
       pcm_cruise_check(acc_on);
     }
@@ -122,7 +128,10 @@ static bool changan_tx_hook(const CANPacket_t *msg) {
 
   // ---- bus 0: steering ------------------------------------------------
   if (msg->addr == 0x1BAU) {
-    int desired_angle = to_signed(((msg->data[3] << 8) | msg->data[2]) >> 1, 15);
+    // DBC: EPS_AngleCmd 17|14@0+ (big-endian: byte2 low2 | byte3 | byte4 high4)
+    // raw range 0..16383 maps to -720..720 deg with (0.1,-720), so desired
+    // angle in 0.1 deg/LSB units is raw - 7200
+    int desired_angle = (int)((((msg->data[2] & 0x3U) << 12) | (msg->data[3] << 4) | ((msg->data[4] >> 4) & 0xFU)) - 7200);
     bool steer_req = ((msg->data[4] >> 3) & 0x1U) != 0U;
 
     if (steer_angle_cmd_checks_vm(desired_angle, steer_req,
@@ -130,9 +139,14 @@ static bool changan_tx_hook(const CANPacket_t *msg) {
       tx = false;
     }
 
-    // Never let the port command a lateral torque beyond the EPS envelope
-    int torque_max = to_signed(((msg->data[1] << 8) | msg->data[0]) & 0x7FFU, 11);
-    if ((torque_max > 1050) || (torque_max < -1050)) {  // +-21 Nm raw (0.02 Nm/LSB)
+    // Torque limit requests are unsigned 0.02 Nm/LSB with -20.48 offset;
+    // DBC range [-20.48, 20.44] Nm but EPS envelope here is +-4.0 Nm.
+    // ACC_MotorTorqueMaxLimitRequest 7|11@0+ -> raw [824, 1224]
+    // ACC_MotorTorqueMinLimitRequest 12|11@0+ -> raw [824, 1224]
+    int torque_max_raw = (((msg->data[0] << 3) | ((msg->data[1] >> 5) & 0x7U)) & 0x7FFU);
+    int torque_min_raw = ((((msg->data[1] & 0x1FU) << 6) | ((msg->data[2] >> 2) & 0x3FU)) & 0x7FFU);
+    if ((torque_max_raw < 824) || (torque_max_raw > 1224) ||
+        (torque_min_raw < 824) || (torque_min_raw > 1224)) {  // +-4.0 Nm raw (0.02 Nm/LSB)
       tx = false;
     }
   }
@@ -161,6 +175,7 @@ static bool changan_tx_hook(const CANPacket_t *msg) {
 // ------------------------------------------------------------------ init ---
 
 static safety_config changan_init(uint16_t param) {
+  (void)param;
   static const CanMsg CHANGAN_TX_MSGS[] = {
     {0x1BA, 0, 32, .check_relay = true},   // GW_1BA  steering command
     {0x17E, 0,  8, .check_relay = true},   // GW_17E  EPS lateral status
@@ -170,13 +185,13 @@ static safety_config changan_init(uint16_t param) {
   };
 
   static RxCheck changan_rx_checks[] = {
-    // GW_180 steering angle, 0.1 deg
+    // GW_180 steering angle, 0.1 deg (no checksum/counter fields in DBC)
     {.msg = {{0x180, 0, 8, 50U, .ignore_checksum = true, .ignore_counter = true, .ignore_quality_flag = true}, { 0 }, { 0 }}},
-    // GW_17A vehicle speed (iDD)
+    // GW_17A vehicle speed (iDD) / GW_187 (ICE); no checksum/counter fields in DBC
     {.msg = {{0x17A, 0, 8, 50U, .ignore_checksum = true, .ignore_counter = true, .ignore_quality_flag = true},
              {0x187, 0, 8, 50U, .ignore_checksum = true, .ignore_counter = true, .ignore_quality_flag = true}, { 0 }}},
-    // GW_24F driver steering torque
-    {.msg = {{0x24F, 0, 8, 50U, .ignore_checksum = true, .ignore_counter = true, .ignore_quality_flag = true}, { 0 }, { 0 }}},
+    // GW_24F driver steering torque; has EPS_CRCCheck_24F 63|8 and EPS_RollingCounter_24F 51|4
+    {.msg = {{0x24F, 0, 8, 50U, .ignore_checksum = false, .ignore_counter = false, .max_counter = 15U, .ignore_quality_flag = true}, { 0 }, { 0 }}},
   };
 
   safety_config ret;
