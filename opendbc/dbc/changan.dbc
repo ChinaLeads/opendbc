@@ -120,7 +120,7 @@ BO_ 391 GW_187: 8 GW
 BO_ 400 GW_190: 32 GW
  SG_ BMS_HeatSftySts : 34|1@0+ (1,0) [0|1] "" IP,RMU,THU
 
-BO_ 404 NEW_MSG_194: 8 XXX
+BO_ 404 Z6_ReservedFrame_194: 8 GW
 
 BO_ 406 GW_196: 8 GW
  SG_ EMS_RealAccPedal : 7|8@0+ (0.392,0) [0|99.568] "%" GW,TBOX,THU,IP
@@ -168,59 +168,59 @@ BO_ 580 GW_244: 32 GW
  SG_ ACC_LDWStatus : 9|2@0+ (1,0) [0|3] "" TBOX,THU,IP
  SG_ ACC_LDWVibrationWarningReq : 11|2@0+ (1,0) [0|3] "" TBOX,THU,IP
  SG_ ACC_LKAStatus : 13|2@0+ (1,0) [0|3] "" TBOX,THU,IP
- SG_ NEW_SIGNAL_1 : 14|2@1+ (1,0) [0|3] "" XXX
- SG_ NEW_SIGNAL_3 : 16|5@1+ (1,0) [0|31] "" XXX
+ SG_ ACC_Reserved_14_15 : 14|2@1+ (1,0) [0|3] "" TBOX,THU,IP
+ SG_ ACC_Reserved_16_20 : 16|5@1+ (1,0) [0|31] "" TBOX,THU,IP
  SG_ unknown : 21|1@0+ (1,0) [0|1] "" TBOX,THU,IP
- SG_ NEW_SIGNAL_2 : 22|2@1+ (1,0) [0|3] "" XXX
- SG_ NEW_SIGNAL_4 : 24|1@0+ (1,0) [0|1] "" XXX
+ SG_ ACC_Reserved_22_23 : 22|2@1+ (1,0) [0|3] "" TBOX,THU,IP
+ SG_ ACC_Reserved_24 : 24|1@0+ (1,0) [0|1] "" TBOX,THU,IP
  SG_ ACC_TextInfoForDriver : 30|6@0+ (1,0) [0|63] "" TBOX,THU,IP
  SG_ ACC_DecToStop : 31|1@0+ (1,0) [0|1] "" TBOX,THU,IP
- SG_ NEW_SIGNAL_5 : 32|8@1+ (1,0) [0|255] "" XXX
+ SG_ ACC_Reserved_32_39 : 32|8@1+ (1,0) [0|255] "" TBOX,THU,IP
  SG_ ACC_EngineStartStopRequest : 41|2@0+ (1,0) [0|3] "" TBOX,THU,IP
- SG_ ACC_TIAN_1 : 42|2@1+ (1,0) [0|3] "" XXX
+ SG_ ACC_Reserved_42_43 : 42|2@1+ (1,0) [0|3] "" TBOX,THU,IP
  SG_ ACC_CDDActive : 44|1@0+ (1,0) [0|1] "" TBOX,THU,IP
- SG_ NEW_SIGNAL_6 : 45|3@1+ (1,0) [0|7] "" XXX
+ SG_ ACC_Reserved_45_47 : 45|3@1+ (1,0) [0|7] "" TBOX,THU,IP
  SG_ ACC_RollingCounter_24E : 51|4@0+ (1,0) [0|15] "" TBOX,THU,IP
  SG_ ACC_ACCMode : 54|3@0+ (1,0) [0|7] "" TBOX,THU,IP
  SG_ ACC_Driveoff_Request : 55|1@0+ (1,0) [0|1] "" TBOX,THU,IP
  SG_ ACC_CRCCheck_24E : 63|8@0+ (1,0) [0|255] "" TBOX,THU,IP
  SG_ ACC_AEBTargetDeceleration : 71|16@0+ (0.0005,-16) [-16|16] "" TBOX,THU,IP
- SG_ NEW_SIGNAL_7 : 80|7@1+ (1,0) [0|127] "" XXX
+ SG_ ACC_Reserved_80_86 : 80|7@1+ (1,0) [0|127] "" TBOX,THU,IP
  SG_ ACC_AEBActive : 87|1@0+ (1,0) [0|1] "" TBOX,THU,IP
  SG_ ACC_AccTrqReq : 88|14@0+ (5,-5000) [-5000|5000] "" TBOX,THU,IP
- SG_ ACC_TIAN_2 : 89|2@1+ (1,0) [0|3] "" XXX
+ SG_ ACC_Reserved_89_90 : 89|2@1+ (1,0) [0|3] "" TBOX,THU,IP
  SG_ ACC_FCWPreWarning : 91|1@0+ (1,0) [0|1] "" TBOX,THU,IP
  SG_ ACC_FCWLatentWarning : 92|1@0+ (1,0) [0|1] "" TBOX,THU,IP
- SG_ NEW_SIGNAL_8 : 94|2@0+ (1,0) [0|3] "" XXX
+ SG_ ACC_Reserved_94_95 : 94|2@0+ (1,0) [0|3] "" TBOX,THU,IP
  SG_ ACC_AWBActive : 95|1@0+ (1,0) [0|1] "" TBOX,THU,IP
  SG_ ACC_AEBCtrlType : 104|4@0+ (1,0) [0|15] "" TBOX,THU,IP
- SG_ NEW_SIGNAL_9 : 105|1@0+ (1,0) [0|1] "" XXX
+ SG_ ACC_Reserved_105 : 105|1@0+ (1,0) [0|1] "" TBOX,THU,IP
  SG_ ACC_AccTrqReqActive : 106|1@0+ (1,0) [0|1] "" TBOX,THU,IP
  SG_ ACC_RollingCounter_25E : 115|4@0+ (1,0) [0|15] "" TBOX,THU,IP
  SG_ ACC_FuelCutOffPrevention : 116|1@0+ (1,0) [0|1] "" TBOX,THU,IP
  SG_ ACC_CRCCheck_25E : 127|8@0+ (1,0) [0|255] "" TBOX,THU,IP
- SG_ NEW_SIGNAL_10 : 135|8@0+ (1,0) [0|255] "" XXX
- SG_ NEW_SIGNAL_12 : 136|1@0+ (1,0) [0|1] "" XXX
+ SG_ ACC_Reserved_135_142 : 135|8@0+ (1,0) [0|255] "" TBOX,THU,IP
+ SG_ ACC_Reserved_136 : 136|1@0+ (1,0) [0|1] "" TBOX,THU,IP
  SG_ ACC_LatTakeoverReq : 138|2@0+ (1,0) [0|3] "" THU,IP
  SG_ ACC_LngTakeOverReq : 140|2@0+ (1,0) [0|3] "" THU,IP
- SG_ NEW_SIGNAL_11 : 143|3@0+ (1,0) [0|7] "" XXX
- SG_ NEW_SIGNAL_13 : 151|8@0+ (1,0) [0|255] "" XXX
- SG_ NEW_SIGNAL_14 : 153|2@0+ (1,0) [0|3] "" XXX
+ SG_ ACC_Reserved_143_145 : 143|3@0+ (1,0) [0|7] "" TBOX,THU,IP
+ SG_ ACC_Reserved_151_158 : 151|8@0+ (1,0) [0|255] "" TBOX,THU,IP
+ SG_ ACC_Reserved_153_154 : 153|2@0+ (1,0) [0|3] "" TBOX,THU,IP
  SG_ ADS_EOMTOReq : 155|2@0+ (1,0) [0|3] "" THU,IP
  SG_ ACC_HandsOnReq : 158|3@0+ (1,0) [0|7] "" THU,IP
- SG_ NEW_SIGNAL_15 : 159|1@0+ (1,0) [0|1] "" XXX
- SG_ NEW_SIGNAL_16 : 167|8@0+ (1,0) [0|255] "" XXX
- SG_ NEW_SIGNAL_17 : 175|8@0+ (1,0) [0|255] "" XXX
- SG_ NEW_SIGNAL_18 : 183|8@0+ (1,0) [0|255] "" XXX
- SG_ NEW_SIGNAL_19 : 191|8@0+ (1,0) [0|255] "" XXX
- SG_ NEW_SIGNAL_20 : 199|8@0+ (1,0) [0|255] "" XXX
- SG_ NEW_SIGNAL_21 : 207|8@0+ (1,0) [0|255] "" XXX
- SG_ NEW_SIGNAL_22 : 215|8@0+ (1,0) [0|255] "" XXX
- SG_ NEW_SIGNAL_23 : 223|8@0+ (1,0) [0|255] "" XXX
- SG_ NEW_SIGNAL_24 : 231|8@0+ (1,0) [0|255] "" XXX
- SG_ NEW_SIGNAL_25 : 239|8@0+ (1,0) [0|255] "" XXX
- SG_ NEW_SIGNAL_26 : 247|8@0+ (1,0) [0|255] "" XXX
- SG_ NEW_SIGNAL_27 : 255|8@0+ (1,0) [0|255] "" XXX
+ SG_ ACC_Reserved_159 : 159|1@0+ (1,0) [0|1] "" TBOX,THU,IP
+ SG_ ACC_Reserved_167_174 : 167|8@0+ (1,0) [0|255] "" TBOX,THU,IP
+ SG_ ACC_Reserved_175_182 : 175|8@0+ (1,0) [0|255] "" TBOX,THU,IP
+ SG_ ACC_Reserved_183_190 : 183|8@0+ (1,0) [0|255] "" TBOX,THU,IP
+ SG_ ACC_Reserved_191_198 : 191|8@0+ (1,0) [0|255] "" TBOX,THU,IP
+ SG_ ACC_Reserved_199_206 : 199|8@0+ (1,0) [0|255] "" TBOX,THU,IP
+ SG_ ACC_Reserved_207_214 : 207|8@0+ (1,0) [0|255] "" TBOX,THU,IP
+ SG_ ACC_Reserved_215_222 : 215|8@0+ (1,0) [0|255] "" TBOX,THU,IP
+ SG_ ACC_Reserved_223_230 : 223|8@0+ (1,0) [0|255] "" TBOX,THU,IP
+ SG_ ACC_Reserved_231_238 : 231|8@0+ (1,0) [0|255] "" TBOX,THU,IP
+ SG_ ACC_Reserved_239_246 : 239|8@0+ (1,0) [0|255] "" TBOX,THU,IP
+ SG_ ACC_Reserved_247_254 : 247|8@0+ (1,0) [0|255] "" TBOX,THU,IP
+ SG_ ACC_Reserved_255_262 : 255|8@0+ (1,0) [0|255] "" TBOX,THU,IP
 
 BO_ 583 GW_247: 32 GW
  SG_ APA_ButtonPress : 26|1@0+ (1,0) [0|1] "" TBOX,THU,IP
@@ -530,7 +530,7 @@ BO_ 786 GW_312: 64 GW
  SG_ ACC_CRCCheck_3E4 : 63|8@0+ (1,0) [0|255] "" TBOX,THU,IP
  SG_ ADS_EOMWarnning : 71|3@0+ (1,0) [0|7] "" THU,IP
 
-BO_ 790 NEW_MSG_316: 64 XXX
+BO_ 790 Z6_ReservedFrame_316: 64 GW
 
 BO_ 793 GW_319: 32 GW
  SG_ OBC_ObcChrgInpAcU : 71|9@0+ (1,0) [0|500] "V" THU,IP
@@ -550,9 +550,9 @@ BO_ 794 GW_31A: 64 GW
  SG_ ACC_RollingCounter_36D : 51|4@0+ (1,0) [0|15] "" TBOX,THU,IP
  SG_ ACC_FRadarFailureStatus : 53|2@0+ (1,0) [0|3] "" TBOX,THU,IP
  SG_ ACC_CRCCheck_36D : 63|8@0+ (1,0) [0|255] "" TBOX,THU,IP
- SG_ NEW_SIGNAL_1 : 67|4@0+ (1,0) [0|15] "" XXX
+ SG_ ACC_IACCReserved_67_70 : 67|4@0+ (1,0) [0|15] "" TBOX,THU,IP
  SG_ ACC_RLaneMarkerType : 70|3@0+ (1,0) [0|7] "" TBOX,THU,IP
- SG_ NEW_SIGNAL_2 : 72|6@1+ (1,0) [0|63] "" XXX
+ SG_ ACC_IACCReserved_72_77 : 72|6@1+ (1,0) [0|63] "" TBOX,THU,IP
  SG_ ACC_IACCHWAEnable : 78|1@0+ (1,0) [0|1] "" TBOX,THU,IP
  SG_ ACC_HostLaneLeftStatus : 83|4@0+ (1,0) [0|15] "" TBOX,THU,IP
  SG_ ACC_HostLaneRightStatus : 87|4@0+ (1,0) [0|15] "" TBOX,THU,IP
@@ -567,7 +567,7 @@ BO_ 794 GW_31A: 64 GW
  SG_ ACC_DriverHandsOffStatus : 137|2@0+ (1,0) [0|3] "" TBOX,THU,IP
  SG_ ACC_IACCHWATextInfoForDriver : 143|5@0+ (1,0) [0|31] "" TBOX,THU,IP
  SG_ ACC_TargetBasedLateralControl : 150|2@0+ (1,0) [0|3] "" TBOX,THU,IP
- SG_ NEW_SIGNAL_3 : 160|6@1+ (1,0) [0|63] "" XXX
+ SG_ ACC_IACCReserved_160_165 : 160|6@1+ (1,0) [0|63] "" TBOX,THU,IP
  SG_ ACC_LLLaneDetection : 167|2@0+ (1,0) [0|3] "" TBOX,THU,IP
  SG_ ACC_RRLaneDetection : 174|2@0+ (1,0) [0|3] "" TBOX,THU,IP
  SG_ ACC_RollingCounter_30D : 179|4@0+ (1,0) [0|15] "" TBOX,THU,IP

@@ -85,14 +85,14 @@ def create_longitudinal_control(packer, bus, frame, accel, enabled, long_active,
     "ACC_LDWStatus": 0,
     "ACC_TextInfoForDriver": 0,
     "ACC_DecToStop": 0,
-    "ACC_TIAN_1": 1,
+    "ACC_Reserved_42_43": 1,
     "ACC_CDDActive": 0,
     "ACC_ACCMode": 3 if enabled else 2,
     "ACC_Driveoff_Request": 0,
     "ACC_AEBTargetDeceleration": -0.0005,
     "ACC_AEBActive": 0,
     "ACC_AccTrqReq": -5000.,
-    "ACC_TIAN_2": 1,
+    "ACC_Reserved_89_90": 1,
     "ACC_FCWPreWarning": 0,
     "ACC_FCWLatentWarning": 0,
     "ACC_AWBActive": 0,
@@ -119,8 +119,8 @@ def create_longitudinal_control(packer, bus, frame, accel, enabled, long_active,
     values["ACC_AEBActive"] = 0
     values["ACC_AccTrqReq"] = accel_torque if trq_active else -5000.
     values["ACC_AccTrqReqActive"] = trq_active
-    values["ACC_TIAN_1"] = 1
-    values["ACC_TIAN_2"] = 1
+    values["ACC_Reserved_42_43"] = 1
+    values["ACC_Reserved_89_90"] = 1
     values["ACC_LDWStatus"] = 0
     values["ACC_TextInfoForDriver"] = 0
     values["ACC_FCWPreWarning"] = 0
@@ -217,8 +217,8 @@ def create_iacc_status(packer, bus, frame, session_active, hwa_mode, steering_pr
     "ACC_AEBStatus": 1,
     "ACC_Voiceinfo": 0,
     "ACC_FRadarFailureStatus": 0,
-    "NEW_SIGNAL_1": 1,
-    "NEW_SIGNAL_2": 33,
+    "ACC_IACCReserved_67_70": 1,
+    "ACC_IACCReserved_72_77": 33,
     "ACC_IACCHWAEnable": 0,
     "ACC_HostLaneLeftStatus": 0,
     "ACC_HostLaneRightStatus": 0,
@@ -258,20 +258,20 @@ def create_iacc_status(packer, bus, frame, session_active, hwa_mode, steering_pr
   except (TypeError, ValueError, OverflowError):
     stock_hands_off = 1
   try:
-    stock_new_signal_1 = int(values.get("NEW_SIGNAL_1", 1))
+    stock_iacc_reserved = int(values.get("ACC_IACCReserved_67_70", 1))
   except (TypeError, ValueError, OverflowError):
-    stock_new_signal_1 = 1
+    stock_iacc_reserved = 1
 
-  if stock_new_signal_1 not in range(0x10):
-    stock_new_signal_1 = 1
+  if stock_iacc_reserved not in range(0x10):
+    stock_iacc_reserved = 1
   hwa_mode = int(np.clip(hwa_mode, 0, 4))
   hwa_active = session_active and hwa_mode == 3
 
   if session_active:
     values["ACC_AEBStatus"] = 1
     values["ACC_AEBTargetmode"] = 3
-    values["NEW_SIGNAL_1"] = stock_new_signal_1
-    values["NEW_SIGNAL_2"] = 33
+    values["ACC_IACCReserved_67_70"] = stock_iacc_reserved
+    values["ACC_IACCReserved_72_77"] = 33
     values["ACC_LaneChangeStatus"] = 0
     values["ACC_IACCHWAEnable"] = 1
     values["ACC_IACCHWAMode"] = hwa_mode
@@ -315,3 +315,4 @@ def create_iacc_status(packer, bus, frame, session_active, hwa_mode, steering_pr
   values["ACC_CRCCheck_30D"] = changan_checksum(dat[16:23])
   values["ACC_CRCCheck_367"] = changan_checksum(dat[24:31])
   return packer.make_can_msg("GW_31A", bus, values)
+
