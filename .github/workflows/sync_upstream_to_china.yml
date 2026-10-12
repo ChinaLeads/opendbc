@@ -1,0 +1,196 @@
+name: Sync Upstream to China
+
+# ============================================================
+# 自动同步官方 commaai/opendbc 更新到 China 分支
+#
+# 流程：同步官方 → 合并 → 完整性校验 → 通过则发布
+# 校验不通过则中止，不会把坏版本推送给用户设备
+# ============================================================
+
+on:
+  schedule:
+    # 每天 08:00 UTC (北京时间 16:00) 检查官方更新
+    - cron: '0 8 * * *'
+  workflow_dispatch:
+    inputs:
+      skip_validation:
+        description: '跳过校验直接发布（危险，仅紧急时用）'
+        required: false
+        default: 'false'
+        type: choice
+        options: ['false', 'true']
+
+# 需要写权限才能推送
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout China
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+          ref: China
+
+      - name: Configure Git
+        run: |
+          git config user.name "China-sync-bot"
+          git config user.email "sync-bot@users.noreply.github.com"
+
+      - name: Fetch upstream master
+        run: |
+          git remote add upstream https://github.com/commaai/opendbc.git 2>/dev/null || true
+          git fetch upstream master
+
+      - name: Check if already up to date
+        id: check
+        run: |
+          BEHIND=$(git rev-list --count HEAD..upstream/master)
+          echo "behind=$BEHIND" >> $GITHUB_OUTPUT
+          if [ "$BEHIND" -eq 0 ]; then
+            echo "已是最新，无需同步"
+            echo "uptodate=true" >> $GITHUB_OUTPUT
+          else
+            echo "落后 $BEHIND 个提交，开始同步"
+            echo "uptodate=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Merge upstream master
+        id: merge
+        if: steps.check.outputs.behind != '0'
+        run: |
+          set +e
+          git merge upstream/master --no-edit \
+            -m "chore(sync): auto-merge upstream master ($(date +%Y-%m-%d))"
+          MERGE_RC=$?
+
+          if [ -f .git/MERGE_HEAD ]; then
+            echo "merge_status=conflict" >> $GITHUB_OUTPUT
+            echo "✗ 合并冲突，需人工处理："
+            git diff --name-only --diff-filter=U
+            git merge --abort
+          elif [ $MERGE_RC -eq 0 ]; then
+            echo "merge_status=success" >> $GITHUB_OUTPUT
+            echo "✓ 合并成功（无冲突）"
+          else
+            if git diff --quiet HEAD 2>/dev/null && [ ! -f .git/MERGE_HEAD ]; then
+              echo "merge_status=success" >> $GITHUB_OUTPUT
+              echo "✓ 上游无实际变更，视为已同步"
+            else
+              echo "merge_status=error" >> $GITHUB_OUTPUT
+              echo "✗ 合并失败（非冲突原因）"
+              git merge --abort 2>/dev/null || true
+            fi
+          fi
+          exit 0
+
+      # ========== 完整性校验：确保 Changan 适配未被破坏 ==========
+      - name: Validate Changan adaptations
+        id: validate
+        if: steps.merge.outputs.merge_status == 'success'
+        run: |
+          set +e
+
+          CHANGED=$(git rev-list --count origin/China..HEAD 2>/dev/null || echo 0)
+          if [ "$CHANGED" -eq 0 ]; then
+            echo "上游无新变更，无需校验"
+            echo "validation=pass" >> $GITHUB_OUTPUT
+            echo "nochange=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          echo "nochange=false" >> $GITHUB_OUTPUT
+
+          FAIL=0
+          echo "=== 开始校验 Changan 适配完整性 ==="
+
+          # 1. 核心适配文件必须存在
+          for f in opendbc/car/changan/carcontroller.py \
+                   opendbc/car/changan/carstate.py \
+                   opendbc/car/changan/interface.py \
+                   opendbc/car/changan/fingerprints.py \
+                   opendbc/car/changan/values.py; do
+            if [ -f "$f" ]; then
+              echo "✓ $f"
+            else
+              echo "✗ 关键文件缺失: $f"; FAIL=1
+            fi
+          done
+
+          # 2. 固件指纹使用固定模式（非虚假数据）
+          if grep -q 'FW_VERSIONS = {' opendbc/car/changan/fingerprints.py && \
+             grep -q 'CAR.CHANGAN_Z6: {}' opendbc/car/changan/fingerprints.py; then
+            echo "✓ 固件指纹配置正确（固定指纹模式）"
+          else
+            echo "✗ 固件指纹配置异常！"; FAIL=1
+          fi
+
+          # 3. Python 语法检查（核心文件）
+          python3 -m py_compile opendbc/car/changan/carcontroller.py 2>/dev/null \
+            && echo "✓ carcontroller.py 语法正常" \
+            || { echo "✗ carcontroller.py 语法错误！"; FAIL=1; }
+
+          python3 -m py_compile opendbc/car/changan/carstate.py 2>/dev/null \
+            && echo "✓ carstate.py 语法正常" \
+            || { echo "✗ carstate.py 语法错误！"; FAIL=1; }
+
+          if [ "$FAIL" -eq 0 ]; then
+            echo "validation=pass" >> $GITHUB_OUTPUT
+            echo "=== 校验全部通过 ==="
+          else
+            echo "validation=fail" >> $GITHUB_OUTPUT
+            echo "=== 校验失败，将不发布 ==="
+          fi
+
+      - name: Push to China (发布给设备)
+        if: steps.merge.outputs.merge_status == 'success' && (steps.validate.outputs.validation == 'pass' || github.event.inputs.skip_validation == 'true')
+        run: |
+          if [ "${{ steps.validate.outputs.nochange }}" = "true" ]; then
+            echo "上游无新变更，无需推送。China 已是最新。"
+            exit 0
+          fi
+          git push origin China 2>&1 | tail -5
+          echo "✓ 已推送到 China，设备将自动更新"
+
+      - name: Auto-revert on validation failure
+        if: steps.merge.outputs.merge_status == 'success' && steps.validate.outputs.validation == 'fail'
+        run: |
+          git reset --hard origin/China
+          echo "已回滚，China 保持不变"
+
+      - name: Notify on failure
+        if: failure() || steps.merge.outputs.merge_status == 'conflict' || steps.validate.outputs.validation == 'fail'
+        continue-on-error: true
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const status = '${{ steps.merge.outputs.merge_status }}';
+            const validation = '${{ steps.validate.outputs.validation }}';
+            let title, body;
+            if (status === 'conflict') {
+              title = '⚠️ 官方同步冲突：opendbc China 分支需要手动处理';
+              body = '官方 commaai/opendbc:master 与 China 分支发生合并冲突，本次同步已中止，China 未被修改。\n\n需要人工解决冲突后再同步。';
+            } else if (validation === 'fail') {
+              title = '⚠️ 同步后校验失败：Changan 适配可能被破坏';
+              body = '官方更新已合并，但完整性校验未通过，为保护用户设备，本次**未发布**。\n\n请检查校验日志，确认 Changan 适配代码是否被官方改动影响。';
+            } else {
+              title = '⚠️ 同步工作流执行失败';
+              body = '自动同步流程出现异常，请查看 Actions 运行日志。';
+            }
+
+            try {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: title,
+                body: body,
+                labels: ['upstream-sync']
+              });
+              console.log('已创建提醒 Issue');
+            } catch (e) {
+              core.warning(`无法创建 Issue（${e.status || 'unknown'}）：${title}`);
+              core.warning(body);
+            }
