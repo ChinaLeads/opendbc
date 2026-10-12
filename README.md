@@ -1,4 +1,14 @@
-<div align="center" style="text-align: center;">
+> **Chinapilot DBC** 是 Chinapilot 配套 CAN 数据库与固件指纹管理仓库（China 分支），支持中国车型协议，同步 commaai 官方 opendbc 上游。
+>
+> **⚠️ 安全免责声明**
+> 1. 本项目为开源 L2 级驾驶辅助软件的配套组件，不具备自动驾驶能力，车辆控制权始终归驾驶员所有。
+> 2. 使用期间驾驶员必须全程手握方向盘，保持注意力，随时准备接管车辆。
+> 3. 使用者知悉并自行承担使用本项目带来的一切安全风险、事故责任及相关法律后果。
+> 4. 本项目仅用于学术与技术研究目的，禁止在公共道路违规使用。
+>
+> ---
+>
+> <div align="center" style="text-align: center;">
 
 <h1>opendbc</h1>
 <p>
