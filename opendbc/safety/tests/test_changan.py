@@ -121,10 +121,10 @@ class TestChanganSafety(common.PandaCarSafetyTest, common.AngleSteeringSafetyTes
   def test_longitudinal_frames_registered(self):
     allowed = {(addr, bus) for addr, bus in self.TX_MSGS}
     self.assertIn((0x1BA, 0), allowed)
-    self.assertIn((0x17E, 2), allowed)
-    self.assertIn((0x244, 0), allowed)
-    self.assertIn((0x307, 0), allowed)
-    self.assertIn((0x31A, 0), allowed)
+    self.assertIn((0x17E, 0), allowed)
+    self.assertIn((0x244, 2), allowed)
+    self.assertIn((0x307, 2), allowed)
+    self.assertIn((0x31A, 2), allowed)
 
 
 if __name__ == "__main__":
